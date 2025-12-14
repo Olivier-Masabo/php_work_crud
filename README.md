@@ -2,7 +2,7 @@
 
 A simple and secure PHP-based inventory management system for managing products with admin authentication.
 
-## 📋 Table of Contents
+##  Table of Contents
 
 - [Features](#features)
 - [Requirements](#requirements)
@@ -15,7 +15,7 @@ A simple and secure PHP-based inventory management system for managing products 
 - [Default Credentials](#default-credentials)
 - [Troubleshooting](#troubleshooting)
 
-## ✨ Features
+##  Features
 
 - **User Authentication**
   - Secure admin login with password hashing
@@ -41,14 +41,14 @@ A simple and secure PHP-based inventory management system for managing products 
   - Clear success/error messages
   - Easy navigation
 
-## 🔧 Requirements
+##  Requirements
 
 - **Server**: XAMPP, WAMP, LAMP, or any PHP server
 - **PHP**: Version 7.4 or higher
 - **MySQL**: Version 5.7 or higher
 - **Web Browser**: Any modern browser (Chrome, Firefox, Edge, etc.)
 
-## 📦 Installation
+##  Installation
 
 ### Step 1: Download/Clone Files
 
@@ -102,7 +102,7 @@ Place all project files in your web server directory:
 
 3. Login with default credentials (see below)
 
-## 🗄️ Database Setup
+##  Database Setup
 
 The system uses 2 tables:
 
@@ -117,7 +117,7 @@ The system uses 2 tables:
 - `quantity` - Stock quantity (integer)
 - `price` - Product price (decimal)
 
-## ⚙️ Configuration
+## Configuration
 
 ### Database Connection
 
@@ -130,7 +130,7 @@ define('DB_USER', 'root');          // Database username
 define('DB_PASS', '');              // Database password
 ```
 
-## 📖 Usage Guide
+##  Usage Guide
 
 ### For Administrators
 
@@ -189,7 +189,7 @@ define('DB_PASS', '');              // Database password
 - Click "Logout" button from any page
 - You'll be logged out and redirected to login page
 
-## 📁 File Structure
+##  File Structure
 
 ```
 Deploy/
@@ -208,7 +208,7 @@ Deploy/
 └── README.md             # This file
 ```
 
-## 🔒 Security Features
+##  Security Features
 
 ### Implemented Security Measures:
 
@@ -242,16 +242,16 @@ Deploy/
    - All output uses `htmlspecialchars()`
    - Prevents cross-site scripting attacks
 
-## 🔑 Default Credentials
+##  Default Credentials
 
 After importing `database.sql`, you can login with:
 
 - **Username**: `admin`
 - **Password**: `admin123`
 
-**⚠️ Important**: Change the default password after first login for security!
+** Important**: Change the default password after first login for security!
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Problem: "Database connection failed"
 **Solution**: 
@@ -284,14 +284,14 @@ After importing `database.sql`, you can login with:
 - Clear browser cache
 - Check file permissions
 
-## 📝 Notes
+##  Notes
 
 - This is a simple system designed for learning and basic inventory management
 - No JavaScript is used (pure PHP, HTML, CSS)
 - All code is well-commented for educational purposes
 - The system follows PHP best practices and security standards
 
-## 👥 For Two Users
+##  For Two Users
 
 ### User 1: System Administrator
 - Can login with default credentials or registered account
@@ -307,7 +307,7 @@ After importing `database.sql`, you can login with:
 
 **Note**: Both users share the same product database. All products are visible to all administrators.
 
-## 🚀 Getting Started Checklist
+##  Getting Started Checklist
 
 - [ ] Install XAMPP/WAMP/LAMP
 - [ ] Place files in web server directory
@@ -320,7 +320,7 @@ After importing `database.sql`, you can login with:
 - [ ] Register second admin account (optional)
 - [ ] Start managing products!
 
-## 📞 Support
+##  Support
 
 If you encounter any issues:
 1. Check the Troubleshooting section above
