@@ -1,70 +1,45 @@
 <?php
-/**
- * Registration Page
- * Allows new admin users to register
- */
+require __DIR__ . '/db.php';
 
-require_once 'db.php';
+$errors = [];
+$notice = '';
 
-$error = '';
-$success = '';
-
-// If already logged in, redirect to dashboard
-if (isLoggedIn()) {
-    header("Location: dashboard.php");
-    exit();
-}
-
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
+    $username = clean_string($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-    
-    // Form validation: Check for empty fields
-    if (empty($username) || empty($password) || empty($confirm_password)) {
-        $error = "Please fill in all fields.";
+    $confirm = $_POST['confirm'] ?? '';
+
+    if ($username === '') {
+        $errors[] = 'Username is required.';
+    } elseif (mb_strlen($username) > 100) {
+        $errors[] = 'Username must be 100 characters or less.';
     }
-    // Validate password match
-    elseif ($password !== $confirm_password) {
-        $error = "Passwords do not match.";
+
+    if ($password === '') {
+        $errors[] = 'Password is required.';
+    } elseif (mb_strlen($password) < 6) {
+        $errors[] = 'Password must be at least 6 characters.';
     }
-    // Validate password length
-    elseif (strlen($password) < 6) {
-        $error = "Password must be at least 6 characters long.";
+
+    if ($password !== $confirm) {
+        $errors[] = 'Passwords do not match.';
     }
-    // Validate username length
-    elseif (strlen($username) < 3) {
-        $error = "Username must be at least 3 characters long.";
-    }
-    else {
+
+    if (empty($errors)) {
         try {
-            $pdo = getDB();
-            
-            // Check if username already exists using prepared statement
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = :username");
-            $stmt->bindParam(':username', $username, PDO::PARAM_STR);
-            $stmt->execute();
-            
-            if ($stmt->fetch()) {
-                $error = "Username already exists. Please choose a different username.";
-            } else {
-                // Hash password using password_hash
-                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                
-                // Insert new user using prepared statement with named placeholders
-                $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
-                $stmt->bindValue(':username', $username, PDO::PARAM_STR);
-                $stmt->bindValue(':password', $hashed_password, PDO::PARAM_STR);
-                $stmt->execute();
-                
-                $success = "Registration successful! You can now login.";
-                
-                // Clear form fields
-                $username = '';
-            }
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = db()->prepare('INSERT INTO users (username, password) VALUES (:username, :password)');
+            $stmt->execute([
+                ':username' => $username,
+                ':password' => $hash,
+            ]);
+            $notice = 'User registered successfully. You can now log in.';
         } catch (PDOException $e) {
-            $error = "Registration failed. Please try again.";
+            if ((int)$e->errorInfo[1] === 1062) {
+                $errors[] = 'Username is already taken.';
+            } else {
+                $errors[] = 'Registration failed. Please try again.';
+            }
         }
     }
 }
@@ -73,47 +48,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Inventory Management</title>
+    <title>Register User</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
-        <div class="form-wrapper">
-            <h1>Admin Registration</h1>
-            
-            <?php if ($error): ?>
-                <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
-            <?php endif; ?>
-            
-            <?php if ($success): ?>
-                <div class="success-message"><?php echo htmlspecialchars($success); ?></div>
-            <?php endif; ?>
-            
-            <form method="POST" action="register.php">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" value="<?php echo htmlspecialchars($username ?? ''); ?>" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm_password">Confirm Password:</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">Register</button>
-            </form>
-            
-            <p class="info-text">
-                Already have an account? <a href="login.php">Login here</a>
-            </p>
-        </div>
+<body class="centered">
+    <div class="card">
+        <h1>Create Account</h1>
+        <?php if ($notice): ?>
+            <div class="alert success"><?php echo htmlspecialchars($notice); ?></div>
+        <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert error">
+                <?php foreach ($errors as $err): ?>
+                    <div><?php echo htmlspecialchars($err); ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        <form method="post" class="form">
+            <label>
+                Username
+                <input type="text" name="username" maxlength="100" required>
+            </label>
+            <label>
+                Password
+                <input type="password" name="password" minlength="6" required>
+            </label>
+            <label>
+                Confirm password
+                <input type="password" name="confirm" minlength="6" required>
+            </label>
+            <button type="submit">Register</button>
+        </form>
+        <p class="muted">Passwords are stored using PHP's password_hash().</p>
+        <p><a href="login.php">Back to login</a></p>
     </div>
 </body>
 </html>
-

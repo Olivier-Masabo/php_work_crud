@@ -1,50 +1,48 @@
 <?php
-/**
- * Dashboard Page
- * Main page after login - shows navigation to product management
- */
+require __DIR__ . '/db.php';
+require_login();
 
-require_once 'db.php';
-
-// Require login to access this page
-requireLogin();
+$welcome = isset($_GET['welcome']) ? 'Welcome, ' . htmlspecialchars($_SESSION['username'] ?? '') . '!' : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Inventory Management</title>
+    <title>Employee Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Inventory Management System</h1>
-            <div class="user-info">
-                <span>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
-                <a href="logout.php" class="btn btn-secondary">Logout</a>
+    <header class="topbar">
+        <div>
+            <strong>Employee Management</strong>
+            <?php if ($welcome): ?>
+                <span class="muted"><?php echo $welcome; ?></span>
+            <?php else: ?>
+                <span class="muted">Signed in as <?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
+            <?php endif; ?>
+        </div>
+        <nav class="nav-links">
+            <a class="button ghost" href="logout.php">Logout</a>
+        </nav>
+    </header>
+
+    <main class="layout">
+        <div class="card">
+            <h2>what would you like to do today🤗🤗 </h2>
+            <div class="grid-buttons">
+                <a class="button" href="employees_create.php">Add Employee</a>
+                <a class="button" href="employees_update.php">Update Employee</a>
+                <a class="button danger" href="employees_delete.php">Delete Employee</a>
+                <a class="button ghost-blue" href="employees_list.php">View Employees</a>
             </div>
         </div>
-        
-        <div class="dashboard-content">
-            <h2>Dashboard</h2>
-            
-            <div class="menu-cards">
-                <div class="card">
-                    <h3>Products</h3>
-                    <p>Manage your inventory products</p>
-                    <a href="products.php" class="btn btn-primary">View Products</a>
-                </div>
-                
-                <div class="card">
-                    <h3>Add Product</h3>
-                    <p>Add a new product to inventory</p>
-                    <a href="add_product.php" class="btn btn-primary">Add New Product</a>
-                </div>
-            </div>
-        </div>
-    </div>
+    </main>
 </body>
 </html>
+<?php
+require __DIR__ . '/db.php';
+require_login();
+
+$welcome = isset($_GET['welcome']) ? 'Welcome, ' . htmlspecialchars($_SESSION['username'] ?? '') . '!' : '';
+?>
 

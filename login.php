@@ -1,53 +1,45 @@
 <?php
-/**
- * Login Page
- * Handles admin authentication with password hashing
- */
-
-require_once 'db.php';
+require __DIR__ . '/db.php';
 
 $error = '';
-$success = '';
+$remembered = $_COOKIE['remember_username'] ?? '';
 
-// If already logged in, redirect to dashboard
-if (isLoggedIn()) {
-    header("Location: dashboard.php");
-    exit();
+if (!empty($_SESSION['user_id'])) {
+    header('Location: dashboard.php');
+    exit;
 }
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
+    $username = clean_string($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    
-    // Form validation: Check for empty fields
-    if (empty($username) || empty($password)) {
-        $error = "Please fill in all fields.";
+    $remember = isset($_POST['remember']);
+
+    if ($username === '' || $password === '') {
+        $error = 'Username and password are required.';
     } else {
         try {
-            $pdo = getDB();
-            
-            // Use prepared statement with named placeholder
-            $stmt = $pdo->prepare("SELECT id, username, password FROM users WHERE username = :username");
-            $stmt->bindParam(':username', $username, PDO::PARAM_STR);
-            $stmt->execute();
-            
+            $stmt = db()->prepare('SELECT id, username, password FROM users WHERE username = :username');
+            $stmt->execute([':username' => $username]);
             $user = $stmt->fetch();
-            
-            // Verify password using password_verify
+
             if ($user && password_verify($password, $user['password'])) {
-                // Set session variables
+                session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
-                
-                // Redirect to dashboard
-                header("Location: dashboard.php");
-                exit();
+
+                if ($remember) {
+                    setcookie('remember_username', $user['username'], time() + (7 * 24 * 60 * 60), '/', '', false, true);
+                } else {
+                    setcookie('remember_username', '', time() - 3600, '/');
+                }
+
+                header('Location: dashboard.php?welcome=1');
+                exit;
             } else {
-                $error = "Invalid username or password.";
+                $error = 'Invalid username or password.';
             }
-        } catch (PDOException $e) {
-            $error = "Login failed. Please try again.";
+        } catch (Throwable $e) {
+            $error = 'Login failed. Please try again later.';
         }
     }
 }
@@ -56,43 +48,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Inventory Management</title>
+    <title>Login | Employee Portal</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
-        <div class="form-wrapper">
-            <h1>Admin Login</h1>
-            
-            <?php if ($error): ?>
-                <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
-            <?php endif; ?>
-            
-            <?php if ($success): ?>
-                <div class="success-message"><?php echo htmlspecialchars($success); ?></div>
-            <?php endif; ?>
-            
-            <form method="POST" action="login.php">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">Login</button>
-            </form>
-            
-            <p class="info-text">
-                Don't have an account? <a href="register.php">Register here</a><br>
-                Default credentials: admin / admin123
-            </p>
-        </div>
+<body class="centered">
+    <div class="card">
+        <h1>Employee Portal Login</h1>
+        <?php if ($error): ?>
+            <div class="alert error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+        <form method="post" action="login.php" class="form">
+            <label>
+                Username
+                <input type="text" name="username" value="<?php echo htmlspecialchars($remembered); ?>" required>
+            </label>
+            <label>
+                Password
+                <input type="password" name="password" required>
+            </label>
+            <label class="inline">
+                <input type="checkbox" name="remember" <?php echo $remembered ? 'checked' : ''; ?>>
+                Remember me (7 days)
+            </label>
+            <button type="submit">Login</button>
+        </form>
+        <p class="muted">Passwords are stored hashed in the database.</p>
+        <p class="muted">Need an account? <a href="register.php">Register here</a>.</p>
     </div>
 </body>
 </html>
-

@@ -1,57 +1,64 @@
 <?php
-/**
- * Database Connection File
- * Uses PDO with prepared statements for security
- */
+// Shared database connection and session bootstrap
 
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'inventory_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Harden session cookies before starting the session
+session_set_cookie_params([
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
 
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Database connection settings — update as needed for your environment.
+const DB_HOST = '127.0.0.1';
+const DB_NAME = 'nextech_portal_24RP05014';
+const DB_USER = 'root';
+const DB_PASS = '';
+
 /**
- * Get PDO database connection
- * @return PDO Database connection object
+ * Get a shared PDO connection.
  */
-function getDB() {
-    try {
-        // Create PDO connection with error mode set to exception
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+function db(): PDO
+{
+    static $pdo = null;
+    if ($pdo === null) {
+        $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false
+            PDO::ATTR_EMULATE_PREPARES => false,
         ];
-        
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-        return $pdo;
-    } catch (PDOException $e) {
-        // Display friendly error message
-        die("Database connection failed: " . $e->getMessage());
+
+        try {
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+        } catch (PDOException $e) {
+            // Surface a friendly message instead of a raw exception.
+            exit('Database connection failed. Please check configuration.');
+        }
+    }
+
+    return $pdo;
+}
+
+/**
+ * Require the user to be logged in; redirect otherwise.
+ */
+function require_login(): void
+{
+    if (empty($_SESSION['user_id'])) {
+        header('Location: login.php');
+        exit;
     }
 }
 
 /**
- * Check if user is logged in
- * @return bool True if logged in, false otherwise
+ * Clean a string input by trimming and removing control characters.
  */
-function isLoggedIn() {
-    return isset($_SESSION['user_id']) && isset($_SESSION['username']);
-}
-
-/**
- * Redirect to login if not authenticated
- */
-function requireLogin() {
-    if (!isLoggedIn()) {
-        header("Location: login.php");
-        exit();
-    }
+function clean_string(?string $value): string
+{
+    $value = trim((string)$value);
+    return preg_replace('/[[:cntrl:]]/', '', $value) ?? '';
 }
 
